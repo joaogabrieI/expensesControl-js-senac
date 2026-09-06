@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meus Gastos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0C1210;
+    --sidebar: #101312;
+    --surface: #161A18;
+    --surface-hover: #1D2220;
+    --border: #232823;
+    --text: #F4F6F4;
+    --text-muted: #8B928C;
+    --positive: #29E58C;
+    --positive-dim: rgba(41,229,140,0.12);
+    --negative: #FF6B5E;
+    --negative-dim: rgba(255,107,94,0.12);
+  }
+  *{ scrollbar-color: #2A302D var(--bg); scrollbar-width: thin; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+  }
+  .font-display{ font-family: 'Space Grotesk', sans-serif; }
+  .nav-item{
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .row{
+    transition: background-color .12s ease;
+  }
+  .row .row-actions{
+    opacity: 0;
+    transition: opacity .12s ease;
+  }
+  .row:hover .row-actions{ opacity: 1; }
+  .cat-dot{
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; animation: none !important; }
+  }
+  ::selection{ background: var(--positive); color: #0C1210; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<input type="checkbox" id="modal-toggle" class="hidden peer">
+
+<div class="flex min-h-screen pb-24">
+
+  <!-- SIDEBAR -->
+  <aside class="hidden md:flex md:w-64 lg:w-72 flex-col shrink-0 fixed left-0 top-0 bottom-24 py-6 px-4" style="background: var(--sidebar);">
+    <div class="flex items-center gap-2 px-2 mb-8">
+      <div class="w-8 h-8 rounded-md flex items-center justify-center" style="background: var(--positive);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0C1210" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      </div>
+      <span class="font-display font-semibold text-lg tracking-tight">Saldo</span>
+    </div>
+
+    <nav class="flex flex-col gap-1 mb-8">
+      <p class="px-3 text-xs font-medium tracking-wide text-[var(--text-muted)] uppercase mb-1" style="letter-spacing: .06em;">Visualizar</p>
+      <a href="#" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium" style="background: var(--surface); color: var(--text);">
+        <span class="flex items-center gap-3">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          Todos os lançamentos
+        </span>
+        <span class="text-xs text-[var(--text-muted)]">14</span>
+      </a>
+      <a href="#" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span class="flex items-center gap-3">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+          Receitas
+        </span>
+        <span class="text-xs">5</span>
+      </a>
+      <a href="#" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span class="flex items-center gap-3">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+          Despesas
+        </span>
+        <span class="text-xs">9</span>
+      </a>
+    </nav>
+
+    <div id="lista-categorias-sidebar" class="flex flex-col gap-1 overflow-y-auto">
+      <p class="px-3 text-xs font-medium tracking-wide text-[var(--text-muted)] uppercase mb-1" style="letter-spacing: .06em;">Categorias</p>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#F5C542;"></span> Alimentação
+      </a>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#5CC8FF;"></span> Transporte
+      </a>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#29E58C;"></span> Salário
+      </a>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#C792EA;"></span> Lazer
+      </a>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#FF8A5C;"></span> Moradia
+      </a>
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#6EE7E0;"></span> Saúde
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 md:ml-64 lg:ml-72 px-5 sm:px-8 lg:px-12 py-8 max-w-5xl">
+
+    <!-- HERO -->
+    <section class="mb-10">
+      <p class="text-[var(--text-muted)] text-sm mb-1">Resumo de setembro</p>
+      <div class="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <h1 class="font-display font-semibold text-5xl sm:text-6xl tracking-tight" style="color: var(--positive);">
+            R$ 3.240,50
+          </h1>
+          <p class="text-[var(--text-muted)] mt-2">é o que sobra depois de tudo entrar e sair</p>
+        </div>
+        <label for="modal-toggle" class="shrink-0 flex items-center gap-2 font-medium px-5 py-3 rounded-full cursor-pointer" style="background: var(--positive); color: #0C1210;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0C1210" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Novo lançamento
+        </label>
+      </div>
+    </section>
+
+    <!-- FILTROS -->
+    <section id="lista-chips-filtro" class="flex flex-wrap items-center gap-2 mb-6">
+      <button class="px-4 py-1.5 rounded-full text-sm font-medium" style="background: var(--text); color: var(--bg);">Todos</button>
+      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Receitas</button>
+      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Despesas</button>
+      <span class="w-px h-5 mx-1" style="background: var(--border);"></span>
+      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Alimentação</button>
+      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Transporte</button>
+      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Lazer</button>
+      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Moradia</button>
+    </section>
+
+    <!-- LISTA -->
+    <section id="lista-lancamentos" class="rounded-xl overflow-hidden" style="background: var(--surface);">
+      <div id="lista-lancamentos-cabecalho" class="hidden sm:grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3 text-xs uppercase text-[var(--text-muted)]" style="letter-spacing:.06em; border-bottom: 1px solid var(--border);">
+        <span>Descrição</span>
+        <span class="w-24 text-right">Data</span>
+        <span class="w-32 text-right">Valor</span>
+        <span class="w-8"></span>
+      </div>
+
+      <!-- Linha - Receita -->
+      <div class="row grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-hover)]" style="border-bottom: 1px solid var(--border);">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:#29E58C;"></span>
+          <div class="min-w-0">
+            <p class="font-medium truncate">Salário — Setembro</p>
+            <p class="text-sm text-[var(--text-muted)]">Salário</p>
+          </div>
+        </div>
+        <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">01 set</span>
+        <span class="w-32 text-right font-display font-semibold" style="color: var(--positive);">+ R$ 5.200,00</span>
+        <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+
+      <!-- Linha - Despesa -->
+      <div class="row grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-hover)]" style="border-bottom: 1px solid var(--border);">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:#FF8A5C;"></span>
+          <div class="min-w-0">
+            <p class="font-medium truncate">Aluguel</p>
+            <p class="text-sm text-[var(--text-muted)]">Moradia</p>
+          </div>
+        </div>
+        <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">02 set</span>
+        <span class="w-32 text-right font-display font-semibold" style="color: var(--negative);">− R$ 1.800,00</span>
+        <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+
+      <!-- Linha - Despesa -->
+      <div class="row grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-hover)]" style="border-bottom: 1px solid var(--border);">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:#F5C542;"></span>
+          <div class="min-w-0">
+            <p class="font-medium truncate">Supermercado</p>
+            <p class="text-sm text-[var(--text-muted)]">Alimentação</p>
+          </div>
+        </div>
+        <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">03 set</span>
+        <span class="w-32 text-right font-display font-semibold" style="color: var(--negative);">− R$ 486,30</span>
+        <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+
+      <!-- Linha - Despesa -->
+      <div class="row grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-hover)]" style="border-bottom: 1px solid var(--border);">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:#5CC8FF;"></span>
+          <div class="min-w-0">
+            <p class="font-medium truncate">Uber para o trabalho</p>
+            <p class="text-sm text-[var(--text-muted)]">Transporte</p>
+          </div>
+        </div>
+        <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">04 set</span>
+        <span class="w-32 text-right font-display font-semibold" style="color: var(--negative);">− R$ 32,90</span>
+        <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+
+      <!-- Linha - Receita -->
+      <div class="row grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-hover)]" style="border-bottom: 1px solid var(--border);">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:#29E58C;"></span>
+          <div class="min-w-0">
+            <p class="font-medium truncate">Projeto freelance — landing page</p>
+            <p class="text-sm text-[var(--text-muted)]">Salário</p>
+          </div>
+        </div>
+        <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">05 set</span>
+        <span class="w-32 text-right font-display font-semibold" style="color: var(--positive);">+ R$ 950,00</span>
+        <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+
+      <!-- Linha - Despesa -->
+      <div class="row grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-hover)]" style="border-bottom: 1px solid var(--border);">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:#C792EA;"></span>
+          <div class="min-w-0">
+            <p class="font-medium truncate">Cinema com amigos</p>
+            <p class="text-sm text-[var(--text-muted)]">Lazer</p>
+          </div>
+        </div>
+        <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">06 set</span>
+        <span class="w-32 text-right font-display font-semibold" style="color: var(--negative);">− R$ 78,00</span>
+        <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+
+      <!-- Linha - Despesa -->
+      <div class="row grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-hover)]" style="border-bottom: 1px solid var(--border);">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:#6EE7E0;"></span>
+          <div class="min-w-0">
+            <p class="font-medium truncate">Consulta odontológica</p>
+            <p class="text-sm text-[var(--text-muted)]">Saúde</p>
+          </div>
+        </div>
+        <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">08 set</span>
+        <span class="w-32 text-right font-display font-semibold" style="color: var(--negative);">− R$ 220,00</span>
+        <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+
+      <!-- Linha - Despesa (última, sem borda) -->
+      <div class="row grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-hover)]">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:#5CC8FF;"></span>
+          <div class="min-w-0">
+            <p class="font-medium truncate">Combustível</p>
+            <p class="text-sm text-[var(--text-muted)]">Transporte</p>
+          </div>
+        </div>
+        <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">09 set</span>
+        <span class="w-32 text-right font-display font-semibold" style="color: var(--negative);">− R$ 210,00</span>
+        <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- BARRA FIXA (estilo player) -->
+<footer class="fixed bottom-0 left-0 right-0 px-5 sm:px-8 py-4 flex items-center justify-center sm:justify-between gap-6 sm:gap-10 flex-wrap" style="background: var(--sidebar); border-top: 1px solid var(--border);">
+  <div class="flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full" style="background: var(--positive);"></span>
+    <span class="text-sm text-[var(--text-muted)]">Receitas</span>
+    <span class="font-display font-semibold" style="color: var(--positive);">R$ 6.150,00</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full" style="background: var(--negative);"></span>
+    <span class="text-sm text-[var(--text-muted)]">Despesas</span>
+    <span class="font-display font-semibold" style="color: var(--negative);">R$ 2.909,50</span>
+  </div>
+  <div class="flex items-center gap-2 pl-6" style="border-left: 1px solid var(--border);">
+    <span class="text-sm text-[var(--text-muted)]">Saldo</span>
+    <span class="font-display font-bold text-lg" style="color: var(--text);">R$ 3.240,50</span>
+  </div>
+</footer>
+
+<!-- MODAL: NOVO LANÇAMENTO -->
+<div class="hidden peer-checked:block fixed inset-0 z-40">
+  <label for="modal-toggle" class="absolute inset-0" style="background: rgba(4,6,5,0.72); backdrop-filter: blur(3px);"></label>
+
+  <div class="relative z-10 w-[92%] sm:w-full sm:max-w-md mx-auto mt-16 sm:mt-24 rounded-2xl p-6 sm:p-7" style="background: var(--surface); border: 1px solid var(--border);">
+
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h2 class="font-display font-semibold text-2xl tracking-tight">Novo lançamento</h2>
+        <p class="text-sm text-[var(--text-muted)] mt-1">Registre uma entrada ou saída</p>
+      </div>
+      <label for="modal-toggle" class="w-8 h-8 shrink-0 flex items-center justify-center rounded-full cursor-pointer text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)]">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </label>
+    </div>
+
+    <form id="form-novo-lancamento" class="flex flex-col gap-5">
+
+      <!-- Tipo: receita / despesa -->
+      <div>
+        <span class="block text-sm font-medium mb-2">Tipo</span>
+        <div class="grid grid-cols-2 gap-2 p-1 rounded-xl" style="background: var(--bg);">
+          <input type="radio" name="tipo" id="tipo-receita" class="hidden peer/receita" checked>
+          <label for="tipo-receita" class="peer-checked/receita:text-[#0C1210] peer-checked/receita:font-semibold peer-checked/receita:bg-[var(--positive)] text-center text-sm font-medium py-2 rounded-lg cursor-pointer text-[var(--text-muted)]" style="transition: background-color .12s ease, color .12s ease;">
+            Receita
+          </label>
+          <input type="radio" name="tipo" id="tipo-despesa" class="hidden peer/despesa">
+          <label for="tipo-despesa" class="peer-checked/despesa:text-[#0C1210] peer-checked/despesa:font-semibold peer-checked/despesa:bg-[var(--negative)] text-center text-sm font-medium py-2 rounded-lg cursor-pointer text-[var(--text-muted)]">
+            Despesa
+          </label>
+        </div>
+      </div>
+
+      <!-- Descrição -->
+      <div>
+        <label for="descricao" class="flex items-center gap-1 text-sm font-medium mb-2">
+          Descrição <span style="color: var(--negative);">*</span>
+        </label>
+        <input type="text" id="descricao" placeholder="Ex.: Supermercado do mês" class="w-full px-4 py-2.5 rounded-lg text-sm outline-none" style="background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+      </div>
+
+      <!-- Valor -->
+      <div>
+        <label for="valor" class="flex items-center gap-1 text-sm font-medium mb-2">
+          Valor <span style="color: var(--negative);">*</span>
+        </label>
+        <div class="flex items-center rounded-lg" style="background: var(--bg); border: 1px solid var(--border);">
+          <span class="pl-4 pr-1 text-sm text-[var(--text-muted)]">R$</span>
+          <input type="text" id="valor" placeholder="0,00" class="w-full pr-4 py-2.5 bg-transparent outline-none text-sm" style="color: var(--text);">
+        </div>
+      </div>
+
+      <!-- Categoria -->
+      <div>
+        <label for="categoria" class="flex items-center gap-1 text-sm font-medium mb-2">
+          Categoria <span style="color: var(--negative);">*</span>
+        </label>
+        <div class="relative">
+          <select id="categoria" class="w-full appearance-none px-4 py-2.5 pr-10 rounded-lg text-sm outline-none" style="background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+            <option value="" selected disabled>Selecione uma categoria</option>
+            <option>Alimentação</option>
+            <option>Transporte</option>
+            <option>Salário</option>
+            <option>Lazer</option>
+            <option>Moradia</option>
+            <option>Saúde</option>
+            <option>Outros</option>
+          </select>
+          <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <p class="text-xs text-[var(--text-muted)] -mt-1">
+        <span style="color: var(--negative);">*</span> campos obrigatórios
+      </p>
+
+      <!-- Ações -->
+      <div class="flex items-center gap-3 mt-2">
+        <label for="modal-toggle" class="flex-1 text-center font-medium py-2.5 rounded-full cursor-pointer text-[var(--text-muted)] hover:text-[var(--text)]" style="border: 1px solid var(--border);">
+          Cancelar
+        </label>
+        <button type="submit" id="btn-salvar-lancamento" class="flex-1 font-medium py-2.5 rounded-full" style="background: var(--positive); color: #0C1210;">
+          Salvar lançamento
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
