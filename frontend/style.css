@@ -21,6 +21,10 @@ body{
 .nav-item{
   transition: background-color .15s ease, color .15s ease;
 }
+.nav-item-ativo{
+  background: var(--surface);
+  color: var(--text);
+}
 .row{
   transition: background-color .12s ease;
 }

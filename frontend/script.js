@@ -12,6 +12,10 @@ const listaLancamentos = document.getElementById('lista-lancamentos');
 const cabecalhoListaLancamentos = document.getElementById('lista-lancamentos-cabecalho');
 const listaCategoriasSidebar = document.getElementById('lista-categorias-sidebar');
 const listaChipsFiltro = document.getElementById('lista-chips-filtro');
+const navVisualizar = document.getElementById('nav-visualizar');
+const contadorTodos = document.getElementById('contador-todos');
+const contadorReceitas = document.getElementById('contador-receitas');
+const contadorDespesas = document.getElementById('contador-despesas');
 const modalConfirmarRemocao = document.getElementById('modal-confirmar-remocao');
 const modalConfirmarRemocaoOverlay = document.getElementById('modal-confirmar-remocao-overlay');
 const formConfirmarRemocao = document.getElementById('form-confirmar-remocao');
@@ -103,6 +107,30 @@ function atualizarEstilosChips() {
   });
 }
 
+function atualizarContadoresSidebar() {
+  contadorTodos.textContent = lancamentos.length;
+  contadorReceitas.textContent = lancamentos.filter(
+    (lancamento) => lancamento.type === TIPOS.RECEITA
+  ).length;
+  contadorDespesas.textContent = lancamentos.filter(
+    (lancamento) => lancamento.type === TIPOS.DESPESA
+  ).length;
+}
+
+function atualizarEstilosSidebar() {
+  navVisualizar.querySelectorAll('.nav-item[data-filtro-tipo]').forEach((item) => {
+    item.classList.toggle('nav-item-ativo', item.dataset.filtroTipo === filtroTipo);
+  });
+}
+
+function aplicarFiltroTipo(tipo) {
+  filtroTipo = tipo;
+  filtroCategoria = null;
+  renderizarLancamentos();
+  atualizarEstilosChips();
+  atualizarEstilosSidebar();
+}
+
 function abrirConfirmacaoRemocao(id) {
   const lancamento = lancamentos.find((item) => item.id === id);
   if (!lancamento) return;
@@ -154,6 +182,7 @@ function removerLancamento(id) {
   lancamentos.splice(indice, 1);
   renderizarLancamentos();
   atualizarResumo();
+  atualizarContadoresSidebar();
   salvarEstado();
 }
 
@@ -244,6 +273,7 @@ function adicionarLancamento(evento) {
   limparFormulario();
   renderizarLancamentos();
   atualizarResumo();
+  atualizarContadoresSidebar();
 
   modalToggle.checked = false;
 }
@@ -272,24 +302,32 @@ btnCancelarRemocao.addEventListener('click', fecharConfirmacaoRemocao);
 
 modalConfirmarRemocaoOverlay.addEventListener('click', fecharConfirmacaoRemocao);
 
+navVisualizar.addEventListener('click', (evento) => {
+  const botao = evento.target.closest('[data-filtro-tipo]');
+  if (!botao) return;
+
+  aplicarFiltroTipo(botao.dataset.filtroTipo);
+});
+
 listaChipsFiltro.addEventListener('click', (evento) => {
   const chip = evento.target.closest('.chip-filtro');
   if (!chip) return;
 
   if (chip.dataset.filtroTipo) {
-    filtroTipo = chip.dataset.filtroTipo;
-    filtroCategoria = null;
+    aplicarFiltroTipo(chip.dataset.filtroTipo);
   } else if (chip.dataset.filtroCategoria) {
     filtroCategoria = chip.dataset.filtroCategoria;
     filtroTipo = 'todos';
+    renderizarLancamentos();
+    atualizarEstilosChips();
+    atualizarEstilosSidebar();
   }
-
-  renderizarLancamentos();
-  atualizarEstilosChips();
 });
 
 carregarEstado();
 criarChipsCategorias();
 renderizarLancamentos();
 atualizarResumo();
+atualizarContadoresSidebar();
 atualizarEstilosChips();
+atualizarEstilosSidebar();

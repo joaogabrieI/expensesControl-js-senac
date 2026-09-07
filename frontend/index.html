@@ -24,29 +24,29 @@
       <span class="font-display font-semibold text-lg tracking-tight">Saldo</span>
     </div>
 
-    <nav class="flex flex-col gap-1 mb-8">
+    <nav id="nav-visualizar" class="flex flex-col gap-1 mb-8">
       <p class="px-3 text-xs font-medium tracking-wide text-[var(--text-muted)] uppercase mb-1" style="letter-spacing: .06em;">Visualizar</p>
-      <a href="#" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium" style="background: var(--surface); color: var(--text);">
+      <button type="button" data-filtro-tipo="todos" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)] nav-item-ativo">
         <span class="flex items-center gap-3">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
           Todos os lançamentos
         </span>
-        <span class="text-xs text-[var(--text-muted)]">14</span>
-      </a>
-      <a href="#" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span id="contador-todos" class="text-xs text-[var(--text-muted)]">0</span>
+      </button>
+      <button type="button" data-filtro-tipo="income" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
         <span class="flex items-center gap-3">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
           Receitas
         </span>
-        <span class="text-xs">5</span>
-      </a>
-      <a href="#" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+        <span id="contador-receitas" class="text-xs">0</span>
+      </button>
+      <button type="button" data-filtro-tipo="expense" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
         <span class="flex items-center gap-3">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
           Despesas
         </span>
-        <span class="text-xs">9</span>
-      </a>
+        <span id="contador-despesas" class="text-xs">0</span>
+      </button>
     </nav>
 
     <div id="lista-categorias-sidebar" class="flex flex-col gap-1 overflow-y-auto">
