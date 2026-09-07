@@ -194,13 +194,6 @@ function renderizarLancamentos() {
 
     listaLancamentos.appendChild(div);
   });
-
-  listaLancamentos.querySelectorAll('.btn-remover').forEach((botao) => {
-    botao.addEventListener('click', () => {
-      const linha = botao.closest('.row');
-      abrirConfirmacaoRemocao(linha.dataset.id);
-    });
-  });
 }
 
 function limparFormulario() {
@@ -244,6 +237,16 @@ function adicionarLancamento(evento) {
 }
 
 formNovoLancamento.addEventListener('submit', adicionarLancamento);
+
+btnSalvar.addEventListener('click', adicionarLancamento);
+
+listaLancamentos.addEventListener('click', (evento) => {
+  const botao = evento.target.closest('.btn-remover');
+  if (!botao) return;
+
+  const linha = botao.closest('.row');
+  abrirConfirmacaoRemocao(linha.dataset.id);
+});
 
 formConfirmarRemocao.addEventListener('submit', (evento) => {
   evento.preventDefault();
