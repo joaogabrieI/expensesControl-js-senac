@@ -17,6 +17,10 @@ const modalConfirmarRemocaoOverlay = document.getElementById('modal-confirmar-re
 const formConfirmarRemocao = document.getElementById('form-confirmar-remocao');
 const btnCancelarRemocao = document.getElementById('btn-cancelar-remocao');
 const textoLancamentoRemover = document.getElementById('texto-lancamento-remover');
+const resumoSaldo = document.getElementById('resumo-saldo');
+const resumoTotalReceitas = document.getElementById('resumo-total-receitas');
+const resumoTotalDespesas = document.getElementById('resumo-total-despesas');
+const resumoTotalSaldo = document.getElementById('resumo-total-saldo');
 
 // Tipos previsíveis de lançamento
 const TIPOS = Object.freeze({
@@ -117,12 +121,28 @@ function salvarEstado() {
   localStorage.setItem(CHAVE_ESTADO, JSON.stringify(lancamentos));
 }
 
+function atualizarResumo() {
+  const totalReceitas = lancamentos
+    .filter((lancamento) => lancamento.type === TIPOS.RECEITA)
+    .reduce((soma, lancamento) => soma + lancamento.amount, 0);
+  const totalDespesas = lancamentos
+    .filter((lancamento) => lancamento.type === TIPOS.DESPESA)
+    .reduce((soma, lancamento) => soma + lancamento.amount, 0);
+  const saldo = totalReceitas - totalDespesas;
+
+  resumoSaldo.textContent = formatarMoeda(saldo);
+  resumoTotalReceitas.textContent = formatarMoeda(totalReceitas);
+  resumoTotalDespesas.textContent = formatarMoeda(totalDespesas);
+  resumoTotalSaldo.textContent = formatarMoeda(saldo);
+}
+
 function removerLancamento(id) {
   const indice = lancamentos.findIndex((lancamento) => lancamento.id === id);
   if (indice === -1) return;
 
   lancamentos.splice(indice, 1);
   renderizarLancamentos();
+  atualizarResumo();
   salvarEstado();
 }
 
@@ -218,6 +238,7 @@ function adicionarLancamento(evento) {
 
   limparFormulario();
   renderizarLancamentos();
+  atualizarResumo();
 
   modalToggle.checked = false;
 }
@@ -254,4 +275,5 @@ listaChipsFiltro.addEventListener('click', (evento) => {
 
 criarChipsCategorias();
 renderizarLancamentos();
+atualizarResumo();
 atualizarEstilosChips();
