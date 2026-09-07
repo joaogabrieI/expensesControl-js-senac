@@ -7,46 +7,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg: #0C1210;
-    --sidebar: #101312;
-    --surface: #161A18;
-    --surface-hover: #1D2220;
-    --border: #232823;
-    --text: #F4F6F4;
-    --text-muted: #8B928C;
-    --positive: #29E58C;
-    --positive-dim: rgba(41,229,140,0.12);
-    --negative: #FF6B5E;
-    --negative-dim: rgba(255,107,94,0.12);
-  }
-  *{ scrollbar-color: #2A302D var(--bg); scrollbar-width: thin; }
-  body{
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-  }
-  .font-display{ font-family: 'Space Grotesk', sans-serif; }
-  .nav-item{
-    transition: background-color .15s ease, color .15s ease;
-  }
-  .row{
-    transition: background-color .12s ease;
-  }
-  .row .row-actions{
-    opacity: 0;
-    transition: opacity .12s ease;
-  }
-  .row:hover .row-actions{ opacity: 1; }
-  .cat-dot{
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
-  }
-  @media (prefers-reduced-motion: reduce){
-    *{ transition: none !important; animation: none !important; }
-  }
-  ::selection{ background: var(--positive); color: #0C1210; }
-</style>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body class="min-h-screen">
 
