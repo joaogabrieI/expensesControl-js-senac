@@ -9,6 +9,7 @@ const radioDespesa = document.getElementById('tipo-despesa');
 const btnSalvar = document.getElementById('btn-salvar-lancamento');
 
 const listaLancamentos = document.getElementById('lista-lancamentos');
+const cabecalhoListaLancamentos = document.getElementById('lista-lancamentos-cabecalho');
 const listaCategoriasSidebar = document.getElementById('lista-categorias-sidebar');
 const listaChipsFiltro = document.getElementById('lista-chips-filtro');
 
@@ -50,16 +51,15 @@ const CATEGORIA_CORES = {
 };
 
 function renderizarLancamentos() {
-  const cabecalho = document.getElementById('lista-lancamentos-cabecalho');
   const linhasExistentes = listaLancamentos.querySelectorAll('.row');
   linhasExistentes.forEach((linha) => linha.remove());
 
   if (lancamentos.length === 0) {
-    cabecalho.classList.add('hidden');
+    cabecalhoListaLancamentos.classList.add('hidden');
     return;
   }
 
-  cabecalho.classList.remove('hidden');
+  cabecalhoListaLancamentos.classList.remove('hidden');
 
   lancamentos.forEach((lancamento, index) => {
     const cor = CATEGORIA_CORES[lancamento.category] || '#8B928C';
@@ -67,6 +67,8 @@ function renderizarLancamentos() {
     const ehReceita = lancamento.type === TIPOS.RECEITA;
     const sinal = ehReceita ? '+' : '−';
     const corValor = ehReceita ? 'var(--positive)' : 'var(--negative)';
+    const rotuloTipo = ehReceita ? 'Receita' : 'Despesa';
+    const corTipo = ehReceita ? 'var(--positive)' : 'var(--negative)';
     const borda = ehUltimo ? '' : 'border-bottom: 1px solid var(--border);';
 
     const div = document.createElement('div');
@@ -79,12 +81,15 @@ function renderizarLancamentos() {
         <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:${cor};"></span>
         <div class="min-w-0">
           <p class="font-medium truncate">${lancamento.description}</p>
-          <p class="text-sm text-[var(--text-muted)]">${lancamento.category}</p>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-[var(--text-muted)]">${lancamento.category}</span>
+            <span class="text-xs font-semibold px-1.5 py-0.5 rounded" style="color: ${corTipo}; background: ${ehReceita ? 'var(--positive-dim)' : 'var(--negative-dim)'};">${rotuloTipo}</span>
+          </div>
         </div>
       </div>
       <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">${formatarData(new Date())}</span>
       <span class="w-32 text-right font-display font-semibold" style="color: ${corValor};">${sinal} ${formatarMoeda(lancamento.amount)}</span>
-      <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end">
+      <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end btn-remover">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
       </button>
     `;
@@ -133,3 +138,4 @@ function adicionarLancamento(evento) {
 }
 
 formNovoLancamento.addEventListener('submit', adicionarLancamento);
+renderizarLancamentos();
