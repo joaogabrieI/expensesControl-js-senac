@@ -78,15 +78,17 @@ function obterLancamentosFiltrados() {
 }
 
 function criarChipsCategorias() {
-  Object.keys(CATEGORIA_CORES).forEach((categoria) => {
+  const chips = Object.keys(CATEGORIA_CORES).map((categoria) => {
     const botao = document.createElement('button');
     botao.type = 'button';
     botao.className = 'chip-filtro px-4 py-1.5 rounded-full text-sm font-medium border';
     botao.style.cssText = 'border-color: var(--border); color: var(--text-muted);';
     botao.dataset.filtroCategoria = categoria;
     botao.textContent = categoria;
-    listaChipsFiltro.appendChild(botao);
+    return botao;
   });
+
+  chips.forEach((botao) => listaChipsFiltro.appendChild(botao));
 }
 
 function atualizarEstilosChips() {
@@ -199,7 +201,7 @@ function renderizarLancamentos() {
 
   cabecalhoListaLancamentos.classList.remove('hidden');
 
-  lancamentosFiltrados.forEach((lancamento, index) => {
+  const linhas = lancamentosFiltrados.map((lancamento, index) => {
     const cor = CATEGORIA_CORES[lancamento.category] || '#8B928C';
     const ehUltimo = index === lancamentosFiltrados.length - 1;
     const ehReceita = lancamento.type === TIPOS.RECEITA;
@@ -232,8 +234,12 @@ function renderizarLancamentos() {
       </button>
     `;
 
-    listaLancamentos.appendChild(div);
+    return div;
   });
+
+  const fragmento = document.createDocumentFragment();
+  linhas.forEach((linha) => fragmento.appendChild(linha));
+  listaLancamentos.appendChild(fragmento);
 }
 
 function limparFormulario() {
