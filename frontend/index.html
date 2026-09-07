@@ -133,14 +133,10 @@
 
     <!-- FILTROS -->
     <section id="lista-chips-filtro" class="flex flex-wrap items-center gap-2 mb-6">
-      <button class="px-4 py-1.5 rounded-full text-sm font-medium" style="background: var(--text); color: var(--bg);">Todos</button>
-      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Receitas</button>
-      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Despesas</button>
+      <button type="button" data-filtro-tipo="todos" class="chip-filtro px-4 py-1.5 rounded-full text-sm font-medium">Todos</button>
+      <button type="button" data-filtro-tipo="income" class="chip-filtro px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Receitas</button>
+      <button type="button" data-filtro-tipo="expense" class="chip-filtro px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Despesas</button>
       <span class="w-px h-5 mx-1" style="background: var(--border);"></span>
-      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Alimentação</button>
-      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Transporte</button>
-      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Lazer</button>
-      <button class="px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Moradia</button>
     </section>
 
     <!-- LISTA -->

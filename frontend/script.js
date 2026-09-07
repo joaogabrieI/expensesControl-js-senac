@@ -57,7 +57,47 @@ const CATEGORIA_CORES = {
 
 const CHAVE_ESTADO = 'lancamentos';
 
+let filtroTipo = 'todos';
+let filtroCategoria = null;
 let idParaRemover = null;
+
+function obterLancamentosFiltrados() {
+  return lancamentos.filter((lancamento) => {
+    const tipoCorresponde = filtroTipo === 'todos' || lancamento.type === filtroTipo;
+    const categoriaCorresponde = !filtroCategoria || lancamento.category === filtroCategoria;
+    return tipoCorresponde && categoriaCorresponde;
+  });
+}
+
+function criarChipsCategorias() {
+  Object.keys(CATEGORIA_CORES).forEach((categoria) => {
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.className = 'chip-filtro px-4 py-1.5 rounded-full text-sm font-medium border';
+    botao.style.cssText = 'border-color: var(--border); color: var(--text-muted);';
+    botao.dataset.filtroCategoria = categoria;
+    botao.textContent = categoria;
+    listaChipsFiltro.appendChild(botao);
+  });
+}
+
+function atualizarEstilosChips() {
+  listaChipsFiltro.querySelectorAll('.chip-filtro').forEach((chip) => {
+    const ehAtivo =
+      (chip.dataset.filtroTipo && chip.dataset.filtroTipo === filtroTipo) ||
+      (chip.dataset.filtroCategoria && chip.dataset.filtroCategoria === filtroCategoria);
+
+    if (ehAtivo) {
+      chip.style.background = 'var(--text)';
+      chip.style.color = 'var(--bg)';
+      chip.style.borderColor = 'transparent';
+    } else {
+      chip.style.background = 'transparent';
+      chip.style.color = 'var(--text-muted)';
+      chip.style.borderColor = 'var(--border)';
+    }
+  });
+}
 
 function abrirConfirmacaoRemocao(id) {
   const lancamento = lancamentos.find((item) => item.id === id);
@@ -90,16 +130,18 @@ function renderizarLancamentos() {
   const linhasExistentes = listaLancamentos.querySelectorAll('.row');
   linhasExistentes.forEach((linha) => linha.remove());
 
-  if (lancamentos.length === 0) {
+  const lancamentosFiltrados = obterLancamentosFiltrados();
+
+  if (lancamentosFiltrados.length === 0) {
     cabecalhoListaLancamentos.classList.add('hidden');
     return;
   }
 
   cabecalhoListaLancamentos.classList.remove('hidden');
 
-  lancamentos.forEach((lancamento, index) => {
+  lancamentosFiltrados.forEach((lancamento, index) => {
     const cor = CATEGORIA_CORES[lancamento.category] || '#8B928C';
-    const ehUltimo = index === lancamentos.length - 1;
+    const ehUltimo = index === lancamentosFiltrados.length - 1;
     const ehReceita = lancamento.type === TIPOS.RECEITA;
     const sinal = ehReceita ? '+' : '−';
     const corValor = ehReceita ? 'var(--positive)' : 'var(--negative)';
@@ -194,4 +236,22 @@ btnCancelarRemocao.addEventListener('click', fecharConfirmacaoRemocao);
 
 modalConfirmarRemocaoOverlay.addEventListener('click', fecharConfirmacaoRemocao);
 
+listaChipsFiltro.addEventListener('click', (evento) => {
+  const chip = evento.target.closest('.chip-filtro');
+  if (!chip) return;
+
+  if (chip.dataset.filtroTipo) {
+    filtroTipo = chip.dataset.filtroTipo;
+    filtroCategoria = null;
+  } else if (chip.dataset.filtroCategoria) {
+    filtroCategoria = chip.dataset.filtroCategoria;
+    filtroTipo = 'todos';
+  }
+
+  renderizarLancamentos();
+  atualizarEstilosChips();
+});
+
+criarChipsCategorias();
 renderizarLancamentos();
+atualizarEstilosChips();
