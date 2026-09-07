@@ -121,6 +121,17 @@ function salvarEstado() {
   localStorage.setItem(CHAVE_ESTADO, JSON.stringify(lancamentos));
 }
 
+function carregarEstado() {
+  try {
+    const dadosSalvos = JSON.parse(localStorage.getItem(CHAVE_ESTADO));
+    if (Array.isArray(dadosSalvos)) {
+      lancamentos.push(...dadosSalvos);
+    }
+  } catch (erro) {
+    console.warn('Não foi possível carregar os lançamentos salvos.', erro);
+  }
+}
+
 function atualizarResumo() {
   const totalReceitas = lancamentos
     .filter((lancamento) => lancamento.type === TIPOS.RECEITA)
@@ -228,6 +239,7 @@ function adicionarLancamento(evento) {
 
   const lancamento = criarLancamento(descricao, valor, tipo, categoria);
   lancamentos.push(lancamento);
+  salvarEstado();
 
   limparFormulario();
   renderizarLancamentos();
@@ -276,6 +288,7 @@ listaChipsFiltro.addEventListener('click', (evento) => {
   atualizarEstilosChips();
 });
 
+carregarEstado();
 criarChipsCategorias();
 renderizarLancamentos();
 atualizarResumo();
