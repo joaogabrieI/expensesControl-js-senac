@@ -12,6 +12,11 @@ const listaLancamentos = document.getElementById('lista-lancamentos');
 const cabecalhoListaLancamentos = document.getElementById('lista-lancamentos-cabecalho');
 const listaCategoriasSidebar = document.getElementById('lista-categorias-sidebar');
 const listaChipsFiltro = document.getElementById('lista-chips-filtro');
+const modalConfirmarRemocao = document.getElementById('modal-confirmar-remocao');
+const modalConfirmarRemocaoOverlay = document.getElementById('modal-confirmar-remocao-overlay');
+const formConfirmarRemocao = document.getElementById('form-confirmar-remocao');
+const btnCancelarRemocao = document.getElementById('btn-cancelar-remocao');
+const textoLancamentoRemover = document.getElementById('texto-lancamento-remover');
 
 // Tipos previsíveis de lançamento
 const TIPOS = Object.freeze({
@@ -49,6 +54,37 @@ const CATEGORIA_CORES = {
   'Saúde': '#6EE7E0',
   'Outros': '#8B928C',
 };
+
+const CHAVE_ESTADO = 'lancamentos';
+
+let idParaRemover = null;
+
+function abrirConfirmacaoRemocao(id) {
+  const lancamento = lancamentos.find((item) => item.id === id);
+  if (!lancamento) return;
+
+  idParaRemover = id;
+  textoLancamentoRemover.textContent = `"${lancamento.description}"`;
+  modalConfirmarRemocao.classList.remove('hidden');
+}
+
+function fecharConfirmacaoRemocao() {
+  idParaRemover = null;
+  modalConfirmarRemocao.classList.add('hidden');
+}
+
+function salvarEstado() {
+  localStorage.setItem(CHAVE_ESTADO, JSON.stringify(lancamentos));
+}
+
+function removerLancamento(id) {
+  const indice = lancamentos.findIndex((lancamento) => lancamento.id === id);
+  if (indice === -1) return;
+
+  lancamentos.splice(indice, 1);
+  renderizarLancamentos();
+  salvarEstado();
+}
 
 function renderizarLancamentos() {
   const linhasExistentes = listaLancamentos.querySelectorAll('.row');
@@ -96,6 +132,13 @@ function renderizarLancamentos() {
 
     listaLancamentos.appendChild(div);
   });
+
+  listaLancamentos.querySelectorAll('.btn-remover').forEach((botao) => {
+    botao.addEventListener('click', () => {
+      const linha = botao.closest('.row');
+      abrirConfirmacaoRemocao(linha.dataset.id);
+    });
+  });
 }
 
 function limparFormulario() {
@@ -138,4 +181,17 @@ function adicionarLancamento(evento) {
 }
 
 formNovoLancamento.addEventListener('submit', adicionarLancamento);
+
+formConfirmarRemocao.addEventListener('submit', (evento) => {
+  evento.preventDefault();
+  if (idParaRemover) {
+    removerLancamento(idParaRemover);
+  }
+  fecharConfirmacaoRemocao();
+});
+
+btnCancelarRemocao.addEventListener('click', fecharConfirmacaoRemocao);
+
+modalConfirmarRemocaoOverlay.addEventListener('click', fecharConfirmacaoRemocao);
+
 renderizarLancamentos();

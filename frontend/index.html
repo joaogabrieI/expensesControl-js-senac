@@ -119,7 +119,7 @@
       <p class="text-[var(--text-muted)] text-sm mb-1">Resumo de setembro</p>
       <div class="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 class="font-display font-semibold text-5xl sm:text-6xl tracking-tight" style="color: var(--positive);">
+          <h1 id="resumo-saldo" class="font-display font-semibold text-5xl sm:text-6xl tracking-tight" style="color: var(--positive);">
             R$ 3.240,50
           </h1>
           <p class="text-[var(--text-muted)] mt-2">é o que sobra depois de tudo entrar e sair</p>
@@ -161,16 +161,16 @@
   <div class="flex items-center gap-2">
     <span class="w-2 h-2 rounded-full" style="background: var(--positive);"></span>
     <span class="text-sm text-[var(--text-muted)]">Receitas</span>
-    <span class="font-display font-semibold" style="color: var(--positive);">R$ 6.150,00</span>
+    <span id="resumo-total-receitas" class="font-display font-semibold" style="color: var(--positive);">R$ 6.150,00</span>
   </div>
   <div class="flex items-center gap-2">
     <span class="w-2 h-2 rounded-full" style="background: var(--negative);"></span>
     <span class="text-sm text-[var(--text-muted)]">Despesas</span>
-    <span class="font-display font-semibold" style="color: var(--negative);">R$ 2.909,50</span>
+    <span id="resumo-total-despesas" class="font-display font-semibold" style="color: var(--negative);">R$ 2.909,50</span>
   </div>
   <div class="flex items-center gap-2 pl-6" style="border-left: 1px solid var(--border);">
     <span class="text-sm text-[var(--text-muted)]">Saldo</span>
-    <span class="font-display font-bold text-lg" style="color: var(--text);">R$ 3.240,50</span>
+    <span id="resumo-total-saldo" class="font-display font-bold text-lg" style="color: var(--text);">R$ 3.240,50</span>
   </div>
 </footer>
 
@@ -260,6 +260,29 @@
         </button>
       </div>
 
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: CONFIRMAR REMOÇÃO -->
+<div id="modal-confirmar-remocao" class="hidden fixed inset-0 z-50">
+  <div id="modal-confirmar-remocao-overlay" class="absolute inset-0" style="background: rgba(4,6,5,0.72); backdrop-filter: blur(3px);"></div>
+
+  <div class="relative z-10 w-[92%] sm:w-full sm:max-w-sm mx-auto mt-44 sm:mt-52 rounded-2xl p-6 sm:p-7" style="background: var(--surface); border: 1px solid var(--border);">
+    <div class="mb-5">
+      <h2 class="font-display font-semibold text-xl tracking-tight">Remover lançamento?</h2>
+      <p class="text-sm text-[var(--text-muted)] mt-1">
+        Você tem certeza que deseja excluir <span id="texto-lancamento-remover" class="font-medium text-[var(--text)]"></span>? Essa ação não pode ser desfeita.
+      </p>
+    </div>
+
+    <form id="form-confirmar-remocao" class="flex items-center gap-3">
+      <button type="button" id="btn-cancelar-remocao" class="flex-1 text-center font-medium py-2.5 rounded-full cursor-pointer text-[var(--text-muted)] hover:text-[var(--text)]" style="border: 1px solid var(--border);">
+        Cancelar
+      </button>
+      <button type="submit" class="flex-1 font-medium py-2.5 rounded-full" style="background: var(--negative); color: #0C1210;">
+        Remover
+      </button>
     </form>
   </div>
 </div>
