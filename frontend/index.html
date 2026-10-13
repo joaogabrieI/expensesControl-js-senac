@@ -51,24 +51,6 @@
 
     <div id="lista-categorias-sidebar" class="flex flex-col gap-1 overflow-y-auto">
       <p class="px-3 text-xs font-medium tracking-wide text-[var(--text-muted)] uppercase mb-1" style="letter-spacing: .06em;">Categorias</p>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
-        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#F5C542;"></span> Alimentação
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
-        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#5CC8FF;"></span> Transporte
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
-        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#29E58C;"></span> Salário
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
-        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#C792EA;"></span> Lazer
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
-        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#FF8A5C;"></span> Moradia
-      </a>
-      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
-        <span class="w-2.5 h-2.5 rounded-full cat-dot" style="background:#6EE7E0;"></span> Saúde
-      </a>
     </div>
   </aside>
 
@@ -77,11 +59,11 @@
 
     <!-- HERO -->
     <section class="mb-10">
-      <p class="text-[var(--text-muted)] text-sm mb-1">Resumo de setembro</p>
+      <p class="text-[var(--text-muted)] text-sm mb-1">Resumo geral</p>
       <div class="flex flex-wrap items-end justify-between gap-6">
         <div>
           <h1 id="resumo-saldo" class="font-display font-semibold text-5xl sm:text-6xl tracking-tight" style="color: var(--positive);">
-            R$ 3.240,50
+            R$ 0,00
           </h1>
           <p class="text-[var(--text-muted)] mt-2">é o que sobra depois de tudo entrar e sair</p>
         </div>
@@ -108,6 +90,10 @@
         <span class="w-32 text-right">Valor</span>
         <span class="w-8"></span>
       </div>
+      <div id="lista-lancamentos-vazia" class="hidden px-5 py-12 text-center">
+        <p id="lista-lancamentos-vazia-titulo" class="font-medium"></p>
+        <p id="lista-lancamentos-vazia-texto" class="text-sm text-[var(--text-muted)] mt-1"></p>
+      </div>
     </section>
 
   </main>
@@ -118,16 +104,16 @@
   <div class="flex items-center gap-2">
     <span class="w-2 h-2 rounded-full" style="background: var(--positive);"></span>
     <span class="text-sm text-[var(--text-muted)]">Receitas</span>
-    <span id="resumo-total-receitas" class="font-display font-semibold" style="color: var(--positive);">R$ 6.150,00</span>
+    <span id="resumo-total-receitas" class="font-display font-semibold" style="color: var(--positive);">R$ 0,00</span>
   </div>
   <div class="flex items-center gap-2">
     <span class="w-2 h-2 rounded-full" style="background: var(--negative);"></span>
     <span class="text-sm text-[var(--text-muted)]">Despesas</span>
-    <span id="resumo-total-despesas" class="font-display font-semibold" style="color: var(--negative);">R$ 2.909,50</span>
+    <span id="resumo-total-despesas" class="font-display font-semibold" style="color: var(--negative);">R$ 0,00</span>
   </div>
   <div class="flex items-center gap-2 pl-6" style="border-left: 1px solid var(--border);">
     <span class="text-sm text-[var(--text-muted)]">Saldo</span>
-    <span id="resumo-total-saldo" class="font-display font-bold text-lg" style="color: var(--text);">R$ 3.240,50</span>
+    <span id="resumo-total-saldo" class="font-display font-bold text-lg" style="color: var(--text);">R$ 0,00</span>
   </div>
 </footer>
 
@@ -183,6 +169,14 @@
         </div>
       </div>
 
+      <!-- Data -->
+      <div>
+        <label for="data" class="flex items-center gap-1 text-sm font-medium mb-2">
+          Data <span style="color: var(--negative);">*</span>
+        </label>
+        <input type="date" id="data" class="w-full px-4 py-2.5 rounded-lg text-sm outline-none" style="background: var(--bg); border: 1px solid var(--border); color: var(--text); color-scheme: dark;">
+      </div>
+
       <!-- Categoria -->
       <div>
         <label for="categoria" class="flex items-center gap-1 text-sm font-medium mb-2">
@@ -206,6 +200,8 @@
       <p class="text-xs text-[var(--text-muted)] -mt-1">
         <span style="color: var(--negative);">*</span> campos obrigatórios
       </p>
+
+      <p id="erro-formulario" class="hidden text-sm font-medium -mt-2" role="alert" style="color: var(--negative);"></p>
 
       <!-- Ações -->
       <div class="flex items-center gap-3 mt-2">

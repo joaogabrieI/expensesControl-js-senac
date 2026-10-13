@@ -3,13 +3,18 @@ const modalToggle = document.getElementById('modal-toggle');
 const formNovoLancamento = document.getElementById('form-novo-lancamento');
 const inputDescricao = document.getElementById('descricao');
 const inputValor = document.getElementById('valor');
+const inputData = document.getElementById('data');
 const selectCategoria = document.getElementById('categoria');
 const radioReceita = document.getElementById('tipo-receita');
 const radioDespesa = document.getElementById('tipo-despesa');
 const btnSalvar = document.getElementById('btn-salvar-lancamento');
+const erroFormulario = document.getElementById('erro-formulario');
 
 const listaLancamentos = document.getElementById('lista-lancamentos');
 const cabecalhoListaLancamentos = document.getElementById('lista-lancamentos-cabecalho');
+const listaLancamentosVazia = document.getElementById('lista-lancamentos-vazia');
+const listaLancamentosVaziaTitulo = document.getElementById('lista-lancamentos-vazia-titulo');
+const listaLancamentosVaziaTexto = document.getElementById('lista-lancamentos-vazia-texto');
 const listaCategoriasSidebar = document.getElementById('lista-categorias-sidebar');
 const listaChipsFiltro = document.getElementById('lista-chips-filtro');
 const navVisualizar = document.getElementById('nav-visualizar');
@@ -35,13 +40,14 @@ const TIPOS = Object.freeze({
 // Armazenamento dos lançamentos
 const lancamentos = [];
 
-function criarLancamento(descricao, valor, tipo, categoria) {
+function criarLancamento(descricao, valor, tipo, categoria, data) {
   return {
     id: crypto.randomUUID(),
     description: descricao,
     amount: Number(valor),
     type: tipo,
     category: categoria,
+    date: data,
   };
 }
 
@@ -49,8 +55,19 @@ function formatarMoeda(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function formatarData(data) {
-  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+// Recebe a data no formato "AAAA-MM-DD" (valor do input date)
+function formatarData(dataIso) {
+  if (!dataIso) return '—';
+  // Monta a data no fuso local; new Date('AAAA-MM-DD') seria interpretado em UTC
+  const [ano, mes, dia] = dataIso.split('-').map(Number);
+  return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+function obterDataHoje() {
+  const hoje = new Date();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  return `${hoje.getFullYear()}-${mes}-${dia}`;
 }
 
 const CATEGORIA_CORES = {
@@ -91,6 +108,24 @@ function criarChipsCategorias() {
   chips.forEach((botao) => listaChipsFiltro.appendChild(botao));
 }
 
+function criarCategoriasSidebar() {
+  const itens = Object.entries(CATEGORIA_CORES).map(([categoria, cor]) => {
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.className = 'nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]';
+    botao.dataset.filtroCategoria = categoria;
+
+    const ponto = document.createElement('span');
+    ponto.className = 'w-2.5 h-2.5 rounded-full cat-dot shrink-0';
+    ponto.style.background = cor;
+
+    botao.append(ponto, categoria);
+    return botao;
+  });
+
+  itens.forEach((botao) => listaCategoriasSidebar.appendChild(botao));
+}
+
 function atualizarEstilosChips() {
   listaChipsFiltro.querySelectorAll('.chip-filtro').forEach((chip) => {
     const ehAtivo =
@@ -121,13 +156,24 @@ function atualizarContadoresSidebar() {
 
 function atualizarEstilosSidebar() {
   navVisualizar.querySelectorAll('.nav-item[data-filtro-tipo]').forEach((item) => {
-    item.classList.toggle('nav-item-ativo', item.dataset.filtroTipo === filtroTipo);
+    item.classList.toggle('nav-item-ativo', !filtroCategoria && item.dataset.filtroTipo === filtroTipo);
+  });
+  listaCategoriasSidebar.querySelectorAll('.nav-item[data-filtro-categoria]').forEach((item) => {
+    item.classList.toggle('nav-item-ativo', item.dataset.filtroCategoria === filtroCategoria);
   });
 }
 
 function aplicarFiltroTipo(tipo) {
   filtroTipo = tipo;
   filtroCategoria = null;
+  renderizarLancamentos();
+  atualizarEstilosChips();
+  atualizarEstilosSidebar();
+}
+
+function aplicarFiltroCategoria(categoria) {
+  filtroCategoria = categoria;
+  filtroTipo = 'todos';
   renderizarLancamentos();
   atualizarEstilosChips();
   atualizarEstilosSidebar();
@@ -170,8 +216,11 @@ function atualizarResumo() {
     .filter((lancamento) => lancamento.type === TIPOS.DESPESA)
     .reduce((soma, lancamento) => soma + lancamento.amount, 0);
   const saldo = totalReceitas - totalDespesas;
+  const corSaldo = saldo < 0 ? 'var(--negative)' : 'var(--positive)';
 
   resumoSaldo.textContent = formatarMoeda(saldo);
+  resumoSaldo.style.color = corSaldo;
+  resumoTotalSaldo.style.color = saldo < 0 ? 'var(--negative)' : 'var(--text)';
   resumoTotalReceitas.textContent = formatarMoeda(totalReceitas);
   resumoTotalDespesas.textContent = formatarMoeda(totalDespesas);
   resumoTotalSaldo.textContent = formatarMoeda(saldo);
@@ -188,6 +237,17 @@ function removerLancamento(id) {
   salvarEstado();
 }
 
+function mostrarListaVazia() {
+  if (lancamentos.length === 0) {
+    listaLancamentosVaziaTitulo.textContent = 'Nenhum lançamento ainda';
+    listaLancamentosVaziaTexto.textContent = 'Clique em "Novo lançamento" para registrar sua primeira receita ou despesa.';
+  } else {
+    listaLancamentosVaziaTitulo.textContent = 'Nada por aqui';
+    listaLancamentosVaziaTexto.textContent = 'Nenhum lançamento corresponde ao filtro selecionado.';
+  }
+  listaLancamentosVazia.classList.remove('hidden');
+}
+
 function renderizarLancamentos() {
   const linhasExistentes = listaLancamentos.querySelectorAll('.row');
   linhasExistentes.forEach((linha) => linha.remove());
@@ -196,9 +256,11 @@ function renderizarLancamentos() {
 
   if (lancamentosFiltrados.length === 0) {
     cabecalhoListaLancamentos.classList.add('hidden');
+    mostrarListaVazia();
     return;
   }
 
+  listaLancamentosVazia.classList.add('hidden');
   cabecalhoListaLancamentos.classList.remove('hidden');
 
   const linhas = lancamentosFiltrados.map((lancamento, index) => {
@@ -220,19 +282,23 @@ function renderizarLancamentos() {
       <div class="flex items-center gap-3 min-w-0">
         <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background:${cor};"></span>
         <div class="min-w-0">
-          <p class="font-medium truncate">${lancamento.description}</p>
+          <p class="linha-descricao font-medium truncate"></p>
           <div class="flex items-center gap-2">
-            <span class="text-sm text-[var(--text-muted)]">${lancamento.category}</span>
+            <span class="linha-categoria text-sm text-[var(--text-muted)]"></span>
             <span class="text-xs font-semibold px-1.5 py-0.5 rounded" style="color: ${corTipo}; background: ${ehReceita ? 'var(--positive-dim)' : 'var(--negative-dim)'};">${rotuloTipo}</span>
           </div>
         </div>
       </div>
-      <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">${formatarData(new Date())}</span>
+      <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">${formatarData(lancamento.date)}</span>
       <span class="w-32 text-right font-display font-semibold" style="color: ${corValor};">${sinal} ${formatarMoeda(lancamento.amount)}</span>
       <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end btn-remover">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
       </button>
     `;
+
+    // Texto digitado pelo usuário entra via textContent para não ser interpretado como HTML
+    div.querySelector('.linha-descricao').textContent = lancamento.description;
+    div.querySelector('.linha-categoria').textContent = lancamento.category;
 
     return div;
   });
@@ -245,8 +311,21 @@ function renderizarLancamentos() {
 function limparFormulario() {
   inputDescricao.value = '';
   inputValor.value = '';
+  inputData.value = obterDataHoje();
   selectCategoria.selectedIndex = 0;
   radioReceita.checked = true;
+  esconderErroFormulario();
+}
+
+function mostrarErroFormulario(campo, mensagem) {
+  erroFormulario.textContent = mensagem;
+  erroFormulario.classList.remove('hidden');
+  campo.focus();
+}
+
+function esconderErroFormulario() {
+  erroFormulario.textContent = '';
+  erroFormulario.classList.add('hidden');
 }
 
 function adicionarLancamento(evento) {
@@ -256,23 +335,29 @@ function adicionarLancamento(evento) {
   const valor = Number(inputValor.value.replace(',', '.'));
   const tipo = radioReceita.checked ? TIPOS.RECEITA : TIPOS.DESPESA;
   const categoria = selectCategoria.value;
+  const data = inputData.value;
 
   if (!descricao) {
-    inputDescricao.focus();
+    mostrarErroFormulario(inputDescricao, 'Informe uma descrição.');
     return;
   }
 
   if (!valor || valor <= 0) {
-    inputValor.focus();
+    mostrarErroFormulario(inputValor, 'Informe um valor maior que zero (ex.: 150,90).');
+    return;
+  }
+
+  if (!data) {
+    mostrarErroFormulario(inputData, 'Informe a data do lançamento.');
     return;
   }
 
   if (!categoria) {
-    selectCategoria.focus();
+    mostrarErroFormulario(selectCategoria, 'Selecione uma categoria.');
     return;
   }
 
-  const lancamento = criarLancamento(descricao, valor, tipo, categoria);
+  const lancamento = criarLancamento(descricao, valor, tipo, categoria, data);
   lancamentos.push(lancamento);
   salvarEstado();
 
@@ -287,6 +372,9 @@ function adicionarLancamento(evento) {
 formNovoLancamento.addEventListener('submit', adicionarLancamento);
 
 btnSalvar.addEventListener('click', adicionarLancamento);
+
+// Ao abrir o modal, não exibe erro que sobrou de uma tentativa anterior
+modalToggle.addEventListener('change', esconderErroFormulario);
 
 listaLancamentos.addEventListener('click', (evento) => {
   const botao = evento.target.closest('.btn-remover');
@@ -322,16 +410,21 @@ listaChipsFiltro.addEventListener('click', (evento) => {
   if (chip.dataset.filtroTipo) {
     aplicarFiltroTipo(chip.dataset.filtroTipo);
   } else if (chip.dataset.filtroCategoria) {
-    filtroCategoria = chip.dataset.filtroCategoria;
-    filtroTipo = 'todos';
-    renderizarLancamentos();
-    atualizarEstilosChips();
-    atualizarEstilosSidebar();
+    aplicarFiltroCategoria(chip.dataset.filtroCategoria);
   }
+});
+
+listaCategoriasSidebar.addEventListener('click', (evento) => {
+  const botao = evento.target.closest('[data-filtro-categoria]');
+  if (!botao) return;
+
+  aplicarFiltroCategoria(botao.dataset.filtroCategoria);
 });
 
 carregarEstado();
 criarChipsCategorias();
+criarCategoriasSidebar();
+inputData.value = obterDataHoje();
 renderizarLancamentos();
 atualizarResumo();
 atualizarContadoresSidebar();
