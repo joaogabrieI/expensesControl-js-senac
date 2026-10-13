@@ -63,6 +63,24 @@ function formatarData(dataIso) {
   return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
+// Converte o texto digitado em número, aceitando o formato brasileiro
+// Ex.: "1.234,56" → 1234.56 | "150,90" → 150.9 | "1.500" → 1500 | "12.5" → 12.5
+function converterValor(texto) {
+  const valor = texto.trim();
+
+  // Com vírgula, os pontos são separadores de milhar
+  if (valor.includes(',')) {
+    return Number(valor.replace(/\./g, '').replace(',', '.'));
+  }
+
+  // Sem vírgula, o ponto só é milhar se vier seguido de grupos de 3 dígitos
+  if (/^\d{1,3}(\.\d{3})+$/.test(valor)) {
+    return Number(valor.replace(/\./g, ''));
+  }
+
+  return Number(valor);
+}
+
 function obterDataHoje() {
   const hoje = new Date();
   const mes = String(hoje.getMonth() + 1).padStart(2, '0');
@@ -129,7 +147,7 @@ function criarCategoriasSidebar() {
 function atualizarEstilosChips() {
   listaChipsFiltro.querySelectorAll('.chip-filtro').forEach((chip) => {
     const ehAtivo =
-      (chip.dataset.filtroTipo && chip.dataset.filtroTipo === filtroTipo) ||
+      (chip.dataset.filtroTipo && !filtroCategoria && chip.dataset.filtroTipo === filtroTipo) ||
       (chip.dataset.filtroCategoria && chip.dataset.filtroCategoria === filtroCategoria);
 
     if (ehAtivo) {
@@ -332,7 +350,7 @@ function adicionarLancamento(evento) {
   evento.preventDefault();
 
   const descricao = inputDescricao.value.trim();
-  const valor = Number(inputValor.value.replace(',', '.'));
+  const valor = converterValor(inputValor.value);
   const tipo = radioReceita.checked ? TIPOS.RECEITA : TIPOS.DESPESA;
   const categoria = selectCategoria.value;
   const data = inputData.value;
