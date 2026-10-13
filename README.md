@@ -10,6 +10,12 @@ Aplicação web de controle financeiro pessoal desenvolvida em JavaScript puro. 
 - **Validação de formulário**: descrição vazia e valores menores ou iguais a zero são rejeitados.
 - **Listagem dinâmica**: os lançamentos são renderizados no container sem recarregar a página, com receitas e despesas visualmente distintas (cor, sinal e badge de tipo).
 - **Filtros**: visualização de subconjuntos por tipo (todos, receitas, despesas) e por categoria, sem alterar os dados armazenados.
+- **Filtro por mês**: navegação entre meses (ou visão de todos os meses); lista, resumo e contadores consideram apenas o período escolhido.
+- **Busca**: filtra os lançamentos pela descrição em tempo real, ignorando acentos e maiúsculas.
+- **Ordenação**: por data (mais recentes ou mais antigos), por valor (maior ou menor) ou por descrição (A–Z).
+- **Gráfico de receitas × despesas**: colunas dos últimos 6 meses, com destaque no mês selecionado, detalhes ao passar o mouse e clique para navegar até o mês.
+- **Despesas por categoria**: barras com o gasto de cada categoria no período.
+- **Orçamento por categoria**: limite mensal por categoria, salvo no navegador; a barra vira um medidor com aviso de atenção (a partir de 80%) e de limite excedido.
 - **Edição de lançamentos**: o modal de cadastro é reaproveitado, já preenchido com os dados do lançamento escolhido.
 - **Remoção de lançamentos**: com modal de confirmação antes de excluir.
 - **Resumo financeiro**: totais de receitas, despesas e saldo calculados automaticamente a cada adição ou remoção.

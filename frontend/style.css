@@ -10,6 +10,7 @@
   --positive-dim: rgba(41,229,140,0.12);
   --negative: #FF6B5E;
   --negative-dim: rgba(255,107,94,0.12);
+  --warning: #FFB547;
 }
 *{ scrollbar-color: #2A302D var(--bg); scrollbar-width: thin; }
 body{
@@ -28,11 +29,29 @@ body{
 .row{
   transition: background-color .12s ease;
 }
-.row .row-actions{
-  opacity: 0;
-  transition: opacity .12s ease;
+/* Em telas de toque não existe hover, então as ações ficam sempre visíveis */
+@media (hover: hover){
+  .row .row-actions{
+    opacity: 0;
+    transition: opacity .12s ease;
+  }
+  .row:hover .row-actions,
+  .row .row-actions:focus-within{ opacity: 1; }
 }
-.row:hover .row-actions{ opacity: 1; }
+.grafico-grupo{
+  transition: opacity .15s ease;
+}
+/* O mês sob o cursor ou com foco aparece por inteiro, mesmo fora de destaque */
+.grafico-grupo:hover,
+.grafico-grupo:focus-visible{
+  opacity: 1 !important;
+}
+.grafico-barra{
+  transition: height .25s ease;
+}
+.medidor-preenchimento{
+  transition: width .25s ease;
+}
 .cat-dot{
   box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
 }
