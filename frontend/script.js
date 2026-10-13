@@ -51,6 +51,15 @@ const formOrcamentos = document.getElementById('form-orcamentos');
 const listaCamposOrcamento = document.getElementById('lista-campos-orcamento');
 const erroOrcamentos = document.getElementById('erro-orcamentos');
 const btnCancelarOrcamentos = document.getElementById('btn-cancelar-orcamentos');
+const itensCategoriasSidebar = document.getElementById('itens-categorias-sidebar');
+const chipsCategorias = document.getElementById('chips-categorias');
+const modalCategorias = document.getElementById('modal-categorias');
+const modalCategoriasOverlay = document.getElementById('modal-categorias-overlay');
+const formCategorias = document.getElementById('form-categorias');
+const listaCamposCategoria = document.getElementById('lista-campos-categoria');
+const btnNovaCategoria = document.getElementById('btn-nova-categoria');
+const erroCategorias = document.getElementById('erro-categorias');
+const btnCancelarCategorias = document.getElementById('btn-cancelar-categorias');
 
 // Tipos previsíveis de lançamento
 const TIPOS = Object.freeze({
@@ -146,21 +155,49 @@ function normalizarTexto(texto) {
   return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
-const CATEGORIA_CORES = {
-  'Alimentação': '#F5C542',
-  'Transporte': '#5CC8FF',
-  'Salário': '#29E58C',
-  'Lazer': '#C792EA',
-  'Moradia': '#FF8A5C',
-  'Saúde': '#6EE7E0',
-  'Outros': '#8B928C',
-};
+// Texto digitado pelo usuário que precisa entrar em um template com innerHTML
+function escaparHtml(texto) {
+  const entidades = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(texto).replace(/[&<>"']/g, (caractere) => entidades[caractere]);
+}
+
+// Categorias usadas no primeiro acesso; depois o usuário pode alterá-las
+const CATEGORIAS_INICIAIS = [
+  { nome: 'Alimentação', cor: '#F5C542' },
+  { nome: 'Transporte', cor: '#5CC8FF' },
+  { nome: 'Salário', cor: '#29E58C' },
+  { nome: 'Lazer', cor: '#C792EA' },
+  { nome: 'Moradia', cor: '#FF8A5C' },
+  { nome: 'Saúde', cor: '#6EE7E0' },
+  { nome: 'Outros', cor: '#8B928C' },
+];
+
+// "Outros" recebe os lançamentos de categorias removidas, por isso não pode ser renomeada nem removida
+const CATEGORIA_PADRAO = 'Outros';
+const COR_PADRAO = '#8B928C';
+const TAMANHO_MAXIMO_NOME_CATEGORIA = 24;
+
+// Cores oferecidas, em ordem, para cada nova categoria
+const CORES_SUGERIDAS = ['#F5C542', '#5CC8FF', '#29E58C', '#C792EA', '#FF8A5C', '#6EE7E0', '#FF7EB6', '#A3E635', '#7C9CFF', '#F0ABFC'];
 
 const CHAVE_ESTADO = 'lancamentos';
 const CHAVE_ORCAMENTOS = 'orcamentos';
+const CHAVE_CATEGORIAS = 'categorias';
 
-// Salário só aparece como receita, então não faz sentido ter orçamento de gasto
-const CATEGORIAS_ORCAMENTO = Object.keys(CATEGORIA_CORES).filter((categoria) => categoria !== 'Salário');
+// Lista de categorias, ex.: [{ id, nome: 'Alimentação', cor: '#F5C542' }]
+// Os lançamentos e os orçamentos guardam o nome da categoria
+let categorias = [];
+
+// Cópia editável usada pelo modal; só vira "categorias" ao salvar
+let rascunhoCategorias = [];
+
+function obterCorCategoria(nome) {
+  return categorias.find((categoria) => categoria.nome === nome)?.cor || COR_PADRAO;
+}
+
+function ehCorValida(cor) {
+  return /^#[0-9a-f]{6}$/i.test(cor);
+}
 
 const MESES_NO_GRAFICO = 6;
 const ALTURA_GRAFICO = 160;
@@ -239,35 +276,60 @@ function atualizarTela() {
 }
 
 function criarChipsCategorias() {
-  const chips = Object.keys(CATEGORIA_CORES).map((categoria) => {
+  const chips = categorias.map(({ nome }) => {
     const botao = document.createElement('button');
     botao.type = 'button';
     botao.className = 'chip-filtro px-4 py-1.5 rounded-full text-sm font-medium border';
     botao.style.cssText = 'border-color: var(--border); color: var(--text-muted);';
-    botao.dataset.filtroCategoria = categoria;
-    botao.textContent = categoria;
+    botao.dataset.filtroCategoria = nome;
+    botao.textContent = nome;
     return botao;
   });
 
-  chips.forEach((botao) => listaChipsFiltro.appendChild(botao));
+  chipsCategorias.replaceChildren(...chips);
 }
 
 function criarCategoriasSidebar() {
-  const itens = Object.entries(CATEGORIA_CORES).map(([categoria, cor]) => {
+  const itens = categorias.map(({ nome, cor }) => {
     const botao = document.createElement('button');
     botao.type = 'button';
     botao.className = 'nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-left text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]';
-    botao.dataset.filtroCategoria = categoria;
+    botao.dataset.filtroCategoria = nome;
 
     const ponto = document.createElement('span');
     ponto.className = 'w-2.5 h-2.5 rounded-full cat-dot shrink-0';
     ponto.style.background = cor;
 
-    botao.append(ponto, categoria);
+    const texto = document.createElement('span');
+    texto.className = 'truncate';
+    texto.textContent = nome;
+
+    botao.append(ponto, texto);
     return botao;
   });
 
-  itens.forEach((botao) => listaCategoriasSidebar.appendChild(botao));
+  itensCategoriasSidebar.replaceChildren(...itens);
+}
+
+function preencherSelectCategorias() {
+  const valorAtual = selectCategoria.value;
+
+  const opcaoVazia = new Option('Selecione uma categoria', '');
+  opcaoVazia.disabled = true;
+  const opcoes = categorias.map(({ nome }) => new Option(nome, nome));
+  selectCategoria.replaceChildren(opcaoVazia, ...opcoes);
+
+  // Mantém a categoria escolhida se ela ainda existir
+  selectCategoria.value = categorias.some(({ nome }) => nome === valorAtual) ? valorAtual : '';
+}
+
+// Recria tudo que lista categorias (chips, sidebar e select do formulário)
+function renderizarCategorias() {
+  criarChipsCategorias();
+  criarCategoriasSidebar();
+  preencherSelectCategorias();
+  atualizarEstilosChips();
+  atualizarEstilosSidebar();
 }
 
 function atualizarEstilosChips() {
@@ -369,6 +431,39 @@ function carregarOrcamentos() {
   }
 }
 
+function salvarCategorias() {
+  localStorage.setItem(CHAVE_CATEGORIAS, JSON.stringify(categorias));
+}
+
+// Deve rodar depois de carregarEstado, pois confere as categorias usadas nos lançamentos
+function carregarCategorias() {
+  let dadosSalvos = null;
+  try {
+    dadosSalvos = JSON.parse(localStorage.getItem(CHAVE_CATEGORIAS));
+  } catch (erro) {
+    console.warn('Não foi possível carregar as categorias salvas.', erro);
+  }
+
+  const base = Array.isArray(dadosSalvos) ? dadosSalvos : CATEGORIAS_INICIAIS;
+  categorias = base
+    .filter((categoria) => typeof categoria?.nome === 'string' && categoria.nome.trim())
+    .map((categoria) => ({
+      id: categoria.id || crypto.randomUUID(),
+      nome: categoria.nome.trim(),
+      cor: ehCorValida(categoria.cor) ? categoria.cor : COR_PADRAO,
+    }));
+
+  // Toda categoria usada em algum lançamento precisa existir, assim como "Outros"
+  const nomesNecessarios = [...lancamentos.map((lancamento) => lancamento.category), CATEGORIA_PADRAO];
+  nomesNecessarios.forEach((nome) => {
+    if (nome && !categorias.some((categoria) => categoria.nome === nome)) {
+      categorias.push({ id: crypto.randomUUID(), nome, cor: COR_PADRAO });
+    }
+  });
+
+  salvarCategorias();
+}
+
 function somarValores(lista, tipo) {
   return lista
     .filter((lancamento) => lancamento.type === tipo)
@@ -431,7 +526,7 @@ function renderizarLancamentos() {
   cabecalhoListaLancamentos.classList.add('sm:grid');
 
   const linhas = lancamentosFiltrados.map((lancamento, index) => {
-    const cor = CATEGORIA_CORES[lancamento.category] || '#8B928C';
+    const cor = obterCorCategoria(lancamento.category);
     const ehUltimo = index === lancamentosFiltrados.length - 1;
     const ehReceita = lancamento.type === TIPOS.RECEITA;
     const sinal = ehReceita ? '+' : '−';
@@ -594,8 +689,8 @@ function renderizarGraficoCategorias() {
 
   graficoCategoriasSubtitulo.textContent = verTodosMeses ? 'Todos os meses' : capitalizar(formatarMes(mesSelecionado));
 
-  const itens = Object.keys(CATEGORIA_CORES)
-    .map((categoria) => ({
+  const itens = categorias
+    .map(({ nome: categoria }) => ({
       categoria,
       gasto: somarValores(despesasDoPeriodo.filter((lancamento) => lancamento.category === categoria), TIPOS.DESPESA),
       limite: compararComOrcamento ? orcamentos[categoria] || 0 : 0,
@@ -619,7 +714,7 @@ function renderizarGraficoCategorias() {
 
   const linhas = itens.map(({ categoria, gasto, limite }) => {
     let largura;
-    let corBarra = CATEGORIA_CORES[categoria];
+    let corBarra = obterCorCategoria(categoria);
     let valores = `<span class="font-medium text-[var(--text)]">${formatarMoeda(gasto)}</span>`;
     let status;
 
@@ -648,8 +743,8 @@ function renderizarGraficoCategorias() {
       <div>
         <div class="flex items-center justify-between gap-3 text-sm mb-1.5">
           <span class="flex items-center gap-2 min-w-0">
-            <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background: ${CATEGORIA_CORES[categoria]};"></span>
-            <span class="truncate">${categoria}</span>
+            <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background: ${obterCorCategoria(categoria)};"></span>
+            <span class="truncate">${escaparHtml(categoria)}</span>
           </span>
           <span class="shrink-0 text-[var(--text-muted)]">${valores}</span>
         </div>
@@ -665,15 +760,15 @@ function renderizarGraficoCategorias() {
 }
 
 function abrirOrcamentos() {
-  const campos = CATEGORIAS_ORCAMENTO.map((categoria) => {
+  const campos = categorias.map(({ nome: categoria, cor }) => {
     const linha = document.createElement('label');
     linha.className = 'flex items-center justify-between gap-3';
     linha.innerHTML = `
-      <span class="flex items-center gap-2 text-sm font-medium">
-        <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background: ${CATEGORIA_CORES[categoria]};"></span>
-        ${categoria}
+      <span class="flex items-center gap-2 min-w-0 text-sm font-medium">
+        <span class="w-2.5 h-2.5 rounded-full cat-dot shrink-0" style="background: ${cor};"></span>
+        <span class="truncate">${escaparHtml(categoria)}</span>
       </span>
-      <span class="flex items-center w-40 rounded-lg" style="background: var(--bg); border: 1px solid var(--border);">
+      <span class="flex items-center w-40 shrink-0 rounded-lg" style="background: var(--bg); border: 1px solid var(--border);">
         <span class="pl-3 pr-1 text-sm text-[var(--text-muted)]">R$</span>
         <input type="text" inputmode="decimal" placeholder="Sem limite" class="campo-orcamento w-full pr-3 py-2 bg-transparent outline-none text-sm" style="color: var(--text);">
       </span>
@@ -716,6 +811,167 @@ function salvarOrcamentosDoFormulario(evento) {
   salvarOrcamentos();
   fecharOrcamentos();
   renderizarGraficoCategorias();
+}
+
+function contarLancamentosDaCategoria(nome) {
+  return lancamentos.filter((lancamento) => lancamento.category === nome).length;
+}
+
+function sugerirCorNova() {
+  const coresEmUso = rascunhoCategorias.map((categoria) => categoria.cor.toLowerCase());
+  return CORES_SUGERIDAS.find((cor) => !coresEmUso.includes(cor.toLowerCase())) || COR_PADRAO;
+}
+
+function abrirCategorias() {
+  // nomeOriginal permite saber, ao salvar, quais categorias foram renomeadas ou removidas
+  rascunhoCategorias = categorias.map((categoria) => ({ ...categoria, nomeOriginal: categoria.nome, removida: false }));
+  esconderErroCategorias();
+  renderizarRascunhoCategorias();
+  modalCategorias.classList.remove('hidden');
+}
+
+function fecharCategorias() {
+  modalCategorias.classList.add('hidden');
+}
+
+function renderizarRascunhoCategorias() {
+  const linhas = rascunhoCategorias.map((categoria) => {
+    const ehPadrao = categoria.nomeOriginal === CATEGORIA_PADRAO;
+    const quantidade = categoria.nomeOriginal ? contarLancamentosDaCategoria(categoria.nomeOriginal) : 0;
+
+    const linha = document.createElement('div');
+    linha.className = 'flex flex-col gap-1';
+    linha.dataset.id = categoria.id;
+    linha.innerHTML = `
+      <div class="flex items-center gap-2" style="opacity: ${categoria.removida ? 0.45 : 1};">
+        <input type="color" class="seletor-cor shrink-0">
+        <input type="text" class="campo-nome-categoria flex-1 min-w-0 px-3 py-2 rounded-lg text-sm outline-none" maxlength="${TAMANHO_MAXIMO_NOME_CATEGORIA}" placeholder="Nome da categoria" style="background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+        <button type="button" class="btn-remover-categoria shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--border)] hover:text-[var(--negative)]">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    `;
+
+    const seletorCor = linha.querySelector('.seletor-cor');
+    const campoNome = linha.querySelector('.campo-nome-categoria');
+    const botaoRemover = linha.querySelector('.btn-remover-categoria');
+
+    seletorCor.value = categoria.cor;
+    campoNome.value = categoria.nome;
+    seletorCor.setAttribute('aria-label', `Cor da categoria ${categoria.nome || 'nova'}`);
+    campoNome.setAttribute('aria-label', 'Nome da categoria');
+    seletorCor.disabled = categoria.removida;
+    campoNome.disabled = categoria.removida;
+
+    if (ehPadrao) {
+      campoNome.readOnly = true;
+      const explicacao = `"${CATEGORIA_PADRAO}" recebe os lançamentos de categorias removidas, por isso não pode ser renomeada nem removida`;
+      campoNome.title = explicacao;
+
+      // No lugar da lixeira, um cadeado indica que a categoria é fixa
+      const cadeado = document.createElement('span');
+      cadeado.className = 'shrink-0 w-8 h-8 flex items-center justify-center text-[var(--text-muted)]';
+      cadeado.title = explicacao;
+      cadeado.setAttribute('aria-label', explicacao);
+      cadeado.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+      botaoRemover.replaceWith(cadeado);
+    } else if (categoria.removida) {
+      botaoRemover.className = 'btn-remover-categoria shrink-0 px-3 h-8 rounded-full text-xs font-medium text-[var(--text)] hover:bg-[var(--border)]';
+      botaoRemover.textContent = 'Desfazer';
+    } else {
+      botaoRemover.setAttribute('aria-label', `Remover categoria ${categoria.nome}`);
+      botaoRemover.title = 'Remover categoria';
+    }
+
+    if (categoria.removida) {
+      const aviso = document.createElement('p');
+      aviso.className = 'text-xs text-[var(--text-muted)] pl-11';
+      aviso.textContent = quantidade > 0
+        ? `Será removida ao salvar. ${quantidade} ${quantidade === 1 ? 'lançamento irá' : 'lançamentos irão'} para "${CATEGORIA_PADRAO}".`
+        : 'Será removida ao salvar.';
+      linha.appendChild(aviso);
+    }
+
+    return linha;
+  });
+
+  listaCamposCategoria.replaceChildren(...linhas);
+}
+
+function mostrarErroCategorias(campo, mensagem) {
+  erroCategorias.textContent = mensagem;
+  erroCategorias.classList.remove('hidden');
+  campo.focus();
+}
+
+function esconderErroCategorias() {
+  erroCategorias.textContent = '';
+  erroCategorias.classList.add('hidden');
+}
+
+function salvarCategoriasDoFormulario(evento) {
+  evento.preventDefault();
+
+  const mantidas = rascunhoCategorias.filter((categoria) => !categoria.removida);
+
+  // Nomes vazios ou repetidos (ignorando acentos e maiúsculas) não são aceitos
+  const nomesVistos = new Set();
+  for (const categoria of mantidas) {
+    const nome = categoria.nome.trim();
+    const campo = listaCamposCategoria.querySelector(`[data-id="${categoria.id}"] .campo-nome-categoria`);
+
+    if (!nome) {
+      mostrarErroCategorias(campo, 'Dê um nome para todas as categorias.');
+      return;
+    }
+
+    const chave = normalizarTexto(nome);
+    if (nomesVistos.has(chave)) {
+      mostrarErroCategorias(campo, `Já existe uma categoria chamada "${nome}".`);
+      return;
+    }
+    nomesVistos.add(chave);
+  }
+
+  // Nome antigo → nome novo. Categorias removidas passam a apontar para "Outros".
+  // Montar o mapa inteiro antes de aplicar permite até trocar dois nomes entre si.
+  const novosNomes = new Map();
+  const removidas = new Set();
+  rascunhoCategorias.forEach((categoria) => {
+    if (!categoria.nomeOriginal) return;
+    if (categoria.removida) {
+      removidas.add(categoria.nomeOriginal);
+      novosNomes.set(categoria.nomeOriginal, CATEGORIA_PADRAO);
+    } else {
+      novosNomes.set(categoria.nomeOriginal, categoria.nome.trim());
+    }
+  });
+
+  lancamentos.forEach((lancamento) => {
+    if (novosNomes.has(lancamento.category)) {
+      lancamento.category = novosNomes.get(lancamento.category);
+    }
+  });
+
+  // O orçamento acompanha a categoria renomeada e some junto com a removida
+  orcamentos = Object.fromEntries(
+    Object.entries(orcamentos)
+      .filter(([nome]) => !removidas.has(nome))
+      .map(([nome, valor]) => [novosNomes.get(nome) || nome, valor])
+  );
+
+  if (filtroCategoria) {
+    filtroCategoria = removidas.has(filtroCategoria) ? null : novosNomes.get(filtroCategoria) || filtroCategoria;
+  }
+
+  categorias = mantidas.map(({ id, nome, cor }) => ({ id, nome: nome.trim(), cor }));
+
+  salvarCategorias();
+  salvarEstado();
+  salvarOrcamentos();
+  fecharCategorias();
+  renderizarCategorias();
+  atualizarTela();
 }
 
 function limparFormulario() {
@@ -939,11 +1195,55 @@ formOrcamentos.addEventListener('submit', salvarOrcamentosDoFormulario);
 btnCancelarOrcamentos.addEventListener('click', fecharOrcamentos);
 modalOrcamentosOverlay.addEventListener('click', fecharOrcamentos);
 
+// Há um botão de gerenciar na sidebar e outro junto aos chips (a sidebar some no celular)
+document.querySelectorAll('[data-gerenciar-categorias]').forEach((botao) => {
+  botao.addEventListener('click', abrirCategorias);
+});
+
+// Digitar o nome ou trocar a cor só altera o rascunho, sem redesenhar (para não perder o foco)
+listaCamposCategoria.addEventListener('input', (evento) => {
+  const linha = evento.target.closest('[data-id]');
+  if (!linha) return;
+
+  const categoria = rascunhoCategorias.find((item) => item.id === linha.dataset.id);
+  if (evento.target.classList.contains('campo-nome-categoria')) {
+    categoria.nome = evento.target.value;
+  } else if (evento.target.classList.contains('seletor-cor')) {
+    categoria.cor = evento.target.value;
+  }
+});
+
+listaCamposCategoria.addEventListener('click', (evento) => {
+  const botao = evento.target.closest('.btn-remover-categoria');
+  if (!botao) return;
+
+  const id = botao.closest('[data-id]').dataset.id;
+  const categoria = rascunhoCategorias.find((item) => item.id === id);
+
+  if (categoria.nomeOriginal) {
+    // Categoria já existente: marca/desmarca para remoção ao salvar
+    categoria.removida = !categoria.removida;
+  } else {
+    // Categoria criada agora e ainda não salva: some na hora
+    rascunhoCategorias = rascunhoCategorias.filter((item) => item.id !== id);
+  }
+  renderizarRascunhoCategorias();
+});
+
+btnNovaCategoria.addEventListener('click', () => {
+  const nova = { id: crypto.randomUUID(), nome: '', cor: sugerirCorNova(), nomeOriginal: null, removida: false };
+  rascunhoCategorias.push(nova);
+  renderizarRascunhoCategorias();
+  listaCamposCategoria.querySelector(`[data-id="${nova.id}"] .campo-nome-categoria`).focus();
+});
+
+formCategorias.addEventListener('submit', salvarCategoriasDoFormulario);
+btnCancelarCategorias.addEventListener('click', fecharCategorias);
+modalCategoriasOverlay.addEventListener('click', fecharCategorias);
+
 carregarEstado();
+carregarCategorias();
 carregarOrcamentos();
-criarChipsCategorias();
-criarCategoriasSidebar();
+renderizarCategorias();
 inputData.value = obterDataHoje();
 atualizarTela();
-atualizarEstilosChips();
-atualizarEstilosSidebar();

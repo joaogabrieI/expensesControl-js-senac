@@ -50,7 +50,13 @@
     </nav>
 
     <div id="lista-categorias-sidebar" class="flex flex-col gap-1 overflow-y-auto">
-      <p class="px-3 text-xs font-medium tracking-wide text-[var(--text-muted)] uppercase mb-1" style="letter-spacing: .06em;">Categorias</p>
+      <div class="flex items-center justify-between px-3 mb-1">
+        <p class="text-xs font-medium tracking-wide text-[var(--text-muted)] uppercase" style="letter-spacing: .06em;">Categorias</p>
+        <button type="button" data-gerenciar-categorias title="Gerenciar categorias" aria-label="Gerenciar categorias" class="w-6 h-6 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        </button>
+      </div>
+      <div id="itens-categorias-sidebar" class="flex flex-col gap-1"></div>
     </div>
   </aside>
 
@@ -152,6 +158,11 @@
       <button type="button" data-filtro-tipo="income" class="chip-filtro px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Receitas</button>
       <button type="button" data-filtro-tipo="expense" class="chip-filtro px-4 py-1.5 rounded-full text-sm font-medium border" style="border-color: var(--border); color: var(--text-muted);">Despesas</button>
       <span class="w-px h-5 mx-1" style="background: var(--border);"></span>
+      <span id="chips-categorias" class="contents"></span>
+      <button type="button" data-gerenciar-categorias class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text)]">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        Editar categorias
+      </button>
     </section>
 
     <!-- LISTA -->
@@ -257,13 +268,6 @@
         <div class="relative">
           <select id="categoria" class="w-full appearance-none px-4 py-2.5 pr-10 rounded-lg text-sm outline-none" style="background: var(--bg); border: 1px solid var(--border); color: var(--text);">
             <option value="" selected disabled>Selecione uma categoria</option>
-            <option>Alimentação</option>
-            <option>Transporte</option>
-            <option>Salário</option>
-            <option>Lazer</option>
-            <option>Moradia</option>
-            <option>Saúde</option>
-            <option>Outros</option>
           </select>
           <svg class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
@@ -285,6 +289,38 @@
         </button>
       </div>
 
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: CATEGORIAS -->
+<div id="modal-categorias" class="hidden fixed inset-0 z-50">
+  <div id="modal-categorias-overlay" class="absolute inset-0" style="background: rgba(4,6,5,0.72); backdrop-filter: blur(3px);"></div>
+
+  <div class="relative z-10 w-[92%] sm:w-full sm:max-w-md mx-auto mt-10 sm:mt-16 rounded-2xl p-6 sm:p-7 max-h-[85vh] overflow-y-auto" style="background: var(--surface); border: 1px solid var(--border);">
+    <div class="mb-5">
+      <h2 class="font-display font-semibold text-2xl tracking-tight">Categorias</h2>
+      <p class="text-sm text-[var(--text-muted)] mt-1">Renomeie, troque a cor, crie ou remova categorias. As mudanças valem para todos os lançamentos.</p>
+    </div>
+
+    <form id="form-categorias" class="flex flex-col gap-3">
+      <div id="lista-campos-categoria" class="flex flex-col gap-2"></div>
+
+      <button type="button" id="btn-nova-categoria" class="flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)]" style="border: 1px solid var(--border);">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Nova categoria
+      </button>
+
+      <p id="erro-categorias" class="hidden text-sm font-medium" role="alert" style="color: var(--negative);"></p>
+
+      <div class="flex items-center gap-3 mt-3">
+        <button type="button" id="btn-cancelar-categorias" class="flex-1 text-center font-medium py-2.5 rounded-full cursor-pointer text-[var(--text-muted)] hover:text-[var(--text)]" style="border: 1px solid var(--border);">
+          Cancelar
+        </button>
+        <button type="submit" class="flex-1 font-medium py-2.5 rounded-full" style="background: var(--positive); color: #0C1210;">
+          Salvar alterações
+        </button>
+      </div>
     </form>
   </div>
 </div>

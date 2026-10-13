@@ -15,6 +15,7 @@ Aplicação web de controle financeiro pessoal desenvolvida em JavaScript puro. 
 - **Ordenação**: por data (mais recentes ou mais antigos), por valor (maior ou menor) ou por descrição (A–Z).
 - **Gráfico de receitas × despesas**: colunas dos últimos 6 meses, com destaque no mês selecionado, detalhes ao passar o mouse e clique para navegar até o mês.
 - **Despesas por categoria**: barras com o gasto de cada categoria no período.
+- **Categorias personalizadas**: criar, renomear, trocar a cor e remover categorias. Renomear atualiza os lançamentos e orçamentos; ao remover, os lançamentos vão para "Outros" (categoria fixa).
 - **Orçamento por categoria**: limite mensal por categoria, salvo no navegador; a barra vira um medidor com aviso de atenção (a partir de 80%) e de limite excedido.
 - **Edição de lançamentos**: o modal de cadastro é reaproveitado, já preenchido com os dados do lançamento escolhido.
 - **Remoção de lançamentos**: com modal de confirmação antes de excluir.

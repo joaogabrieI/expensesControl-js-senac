@@ -52,6 +52,22 @@ body{
 .medidor-preenchimento{
   transition: width .25s ease;
 }
+/* Seletor de cor redondo, no lugar do quadrado padrão do navegador */
+.seletor-cor{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: transparent;
+  cursor: pointer;
+}
+.seletor-cor::-webkit-color-swatch-wrapper{ padding: 4px; }
+.seletor-cor::-webkit-color-swatch{ border: none; border-radius: 9999px; }
+.seletor-cor::-moz-color-swatch{ border: none; border-radius: 9999px; }
+.seletor-cor:disabled{ cursor: default; }
 .cat-dot{
   box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
 }
