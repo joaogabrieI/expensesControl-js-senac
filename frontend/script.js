@@ -9,6 +9,8 @@ const radioReceita = document.getElementById('tipo-receita');
 const radioDespesa = document.getElementById('tipo-despesa');
 const btnSalvar = document.getElementById('btn-salvar-lancamento');
 const erroFormulario = document.getElementById('erro-formulario');
+const modalLancamentoTitulo = document.getElementById('modal-lancamento-titulo');
+const modalLancamentoSubtitulo = document.getElementById('modal-lancamento-subtitulo');
 
 const listaLancamentos = document.getElementById('lista-lancamentos');
 const cabecalhoListaLancamentos = document.getElementById('lista-lancamentos-cabecalho');
@@ -103,6 +105,7 @@ const CHAVE_ESTADO = 'lancamentos';
 let filtroTipo = 'todos';
 let filtroCategoria = null;
 let idParaRemover = null;
+let idEmEdicao = null;
 
 function obterLancamentosFiltrados() {
   return lancamentos.filter((lancamento) => {
@@ -309,9 +312,14 @@ function renderizarLancamentos() {
       </div>
       <span class="hidden sm:block w-24 text-right text-sm text-[var(--text-muted)]">${formatarData(lancamento.date)}</span>
       <span class="w-32 text-right font-display font-semibold" style="color: ${corValor};">${sinal} ${formatarMoeda(lancamento.amount)}</span>
-      <button class="row-actions w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] justify-self-end btn-remover">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-      </button>
+      <div class="row-actions w-16 flex items-center justify-end">
+        <button type="button" title="Editar" aria-label="Editar lançamento" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] btn-editar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        </button>
+        <button type="button" title="Remover" aria-label="Remover lançamento" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--negative)] btn-remover">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
     `;
 
     // Texto digitado pelo usuário entra via textContent para não ser interpretado como HTML
@@ -346,7 +354,36 @@ function esconderErroFormulario() {
   erroFormulario.classList.add('hidden');
 }
 
-function adicionarLancamento(evento) {
+function definirModoModal(editando) {
+  modalLancamentoTitulo.textContent = editando ? 'Editar lançamento' : 'Novo lançamento';
+  modalLancamentoSubtitulo.textContent = editando ? 'Altere os dados do lançamento' : 'Registre uma entrada ou saída';
+  btnSalvar.textContent = editando ? 'Salvar alterações' : 'Salvar lançamento';
+}
+
+function abrirEdicao(id) {
+  const lancamento = lancamentos.find((item) => item.id === id);
+  if (!lancamento) return;
+
+  idEmEdicao = id;
+  inputDescricao.value = lancamento.description;
+  inputValor.value = lancamento.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  inputData.value = lancamento.date || obterDataHoje();
+  selectCategoria.value = lancamento.category;
+  radioReceita.checked = lancamento.type === TIPOS.RECEITA;
+  radioDespesa.checked = lancamento.type === TIPOS.DESPESA;
+  esconderErroFormulario();
+  definirModoModal(true);
+
+  modalToggle.checked = true;
+}
+
+function sairDaEdicao() {
+  idEmEdicao = null;
+  limparFormulario();
+  definirModoModal(false);
+}
+
+function salvarLancamento(evento) {
   evento.preventDefault();
 
   const descricao = inputDescricao.value.trim();
@@ -375,11 +412,23 @@ function adicionarLancamento(evento) {
     return;
   }
 
-  const lancamento = criarLancamento(descricao, valor, tipo, categoria, data);
-  lancamentos.push(lancamento);
+  const lancamentoEditado = lancamentos.find((item) => item.id === idEmEdicao);
+
+  if (lancamentoEditado) {
+    // Mantém o mesmo id e a mesma posição na lista; só os dados mudam
+    Object.assign(lancamentoEditado, {
+      description: descricao,
+      amount: valor,
+      type: tipo,
+      category: categoria,
+      date: data,
+    });
+  } else {
+    lancamentos.push(criarLancamento(descricao, valor, tipo, categoria, data));
+  }
   salvarEstado();
 
-  limparFormulario();
+  sairDaEdicao();
   renderizarLancamentos();
   atualizarResumo();
   atualizarContadoresSidebar();
@@ -387,19 +436,30 @@ function adicionarLancamento(evento) {
   modalToggle.checked = false;
 }
 
-formNovoLancamento.addEventListener('submit', adicionarLancamento);
+formNovoLancamento.addEventListener('submit', salvarLancamento);
 
-btnSalvar.addEventListener('click', adicionarLancamento);
+btnSalvar.addEventListener('click', salvarLancamento);
 
-// Ao abrir o modal, não exibe erro que sobrou de uma tentativa anterior
-modalToggle.addEventListener('change', esconderErroFormulario);
+modalToggle.addEventListener('change', () => {
+  // Ao abrir o modal, não exibe erro que sobrou de uma tentativa anterior
+  esconderErroFormulario();
+
+  // Ao fechar uma edição cancelada, o modal volta a ser de novo lançamento
+  if (!modalToggle.checked && idEmEdicao) {
+    sairDaEdicao();
+  }
+});
 
 listaLancamentos.addEventListener('click', (evento) => {
-  const botao = evento.target.closest('.btn-remover');
+  const botao = evento.target.closest('.btn-editar, .btn-remover');
   if (!botao) return;
 
-  const linha = botao.closest('.row');
-  abrirConfirmacaoRemocao(linha.dataset.id);
+  const id = botao.closest('.row').dataset.id;
+  if (botao.classList.contains('btn-editar')) {
+    abrirEdicao(id);
+  } else {
+    abrirConfirmacaoRemocao(id);
+  }
 });
 
 formConfirmarRemocao.addEventListener('submit', (evento) => {
